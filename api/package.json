@@ -1,0 +1,28 @@
+{
+  "name": "taa-api",
+  "version": "1.0.0",
+  "main": "src/app.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "nodemon -e js,yml",
+    "lint:schema": "spectral lint openapi/v1.yml",
+    "migrate": "ley"
+  },
+  "dependencies": {
+    "@koa/cors": "^4.0.0",
+    "ajv-formats": "^2.1.1",
+    "http-errors": "^2.0.0",
+    "koa": "^2.14.1",
+    "koa-bodyparser": "^4.4.0",
+    "koa-helmet": "^7.0.2",
+    "lodash": "^4.17.21",
+    "nanoid": "^3.3.6",
+    "openapi-backend": "^5.9.1",
+    "postgres": "^3.3.4"
+  },
+  "devDependencies": {
+    "@stoplight/spectral-cli": "^6.6.0",
+    "ley": "^0.8.1",
+    "nodemon": "^2.0.22"
+  }
+}

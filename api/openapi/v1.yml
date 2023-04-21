@@ -1,0 +1,182 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: An Arnie App
+  description: Arnies
+  contact:
+    email: arnie@mailinator.com
+
+servers:
+  - url: http://localhost:4000/v1
+    description: Arnie App API
+
+paths:
+  /arnies:
+    get:
+      summary: Get a list of Arnies.
+      description: Get a list of Arnie summary data.
+      tags:
+        - arnie
+      operationId: listArnies
+      parameters:
+        - $ref: '#/components/parameters/pageQueryParam'
+        - $ref: '#/components/parameters/pageSizeQueryParam'
+        - $ref: '#/components/parameters/sortQueryParam'
+      responses:
+        '200':
+          description: A list of Arnies.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResult'
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          allOf:
+                            - $ref: '#/components/schemas/ModelOutput'
+                            - $ref: '#/components/schemas/ArnieBrief'
+  /arnies/{id}:
+    parameters:
+      - $ref: '#/components/parameters/idPathParam'
+    get:
+      summary: Get an Arnie.
+      description: Get a detailed Arnie.
+      tags:
+        - arnie
+      operationId: getArnieById
+      responses:
+        '200':
+          description: An Arnie.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ModelOutput'
+                  - $ref: '#/components/schemas/ArnieDetailed'
+    put:
+      summary: Update an Arnie.
+      description: Update an Arnie.
+      tags:
+        - arnie
+      operationId: putArnieById
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArnieDetailed'
+      responses:
+        '200':
+          description: Update result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelOutput'
+
+  /openapi.json:
+    get:
+      summary: Get the OpenAPI definition.
+      description: Get the OpenAPI definition.
+      tags:
+        - schema
+      operationId: getOpenApi
+      responses:
+        '200':
+          description: The OpenAPI definition.
+
+components:
+  parameters:
+    idPathParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    pageQueryParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+    pageSizeQueryParam:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 1000
+    sortQueryParam:
+      name: sort
+      in: query
+      schema:
+        type: array
+        items:
+          type: string
+  schemas:
+    ArnieBrief:
+      type: object
+      required: [killCount, name]
+      properties:
+        killCount:
+          type: integer
+        name:
+          type: string
+    ArnieDetailed:
+      allOf:
+        - $ref: '#/components/schemas/ArnieBrief'
+        - type: object
+          required: [kills]
+          properties:
+            kills:
+              type: array
+              items:
+                $ref: '#/components/schemas/Kill'
+            one_liner:
+              type: string
+    Kill:
+      type: object
+      required: [badGuy]
+      properties:
+        badGuy:
+          type: string
+          minLength: 1
+        oneLiner:
+          type: string
+        weapon:
+          type: string
+    ModelOutput:
+      type: object
+      required: [id, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    PagedResult:
+      type: object
+      required: [meta]
+      properties:
+        meta:
+          type: object
+          required: [currentPage, lastPage, pageSize, total]
+          properties:
+            currentPage:
+              type: integer
+            lastPage:
+              type: integer
+            pageSize:
+              type: integer
+            total:
+              type: integer
+
+tags:
+  - name: arnie
+    description: Arnie operations
+  - name: schema
+    description: Schema operations

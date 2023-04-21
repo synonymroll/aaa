@@ -1,0 +1,5 @@
+const {env} = process;
+env.PGHOST = env.POSTGRES_HOST;
+env.PGDATABASE = env.POSTGRES_DB;
+env.PGUSERNAME = env.POSTGRES_USER;
+env.PGPASSWORD = env.POSTGRES_PASSWORD;

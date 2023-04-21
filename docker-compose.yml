@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  aaa-api:
+    image: node:19-alpine
+    container_name: aaa-api
+    command: ash -c "yarn install --check-files && yarn start"
+    user: node
+    working_dir: /home/node/api
+    depends_on:
+      - aaa-db
+    env_file:
+      - variables.env
+    ports:
+      - 4000:4000
+    volumes:
+      - ./api:/home/node/api
+
+  aaa-showtime:
+    image: node:19-alpine
+    container_name: aaa-showtime
+    command: ash -c "yarn install --check-files && yarn dev"
+    user: node
+    working_dir: /home/node/showtime
+    depends_on:
+      - aaa-api
+    ports:
+      - 5173:5173
+    volumes:
+      - ./showtime:/home/node/showtime
+
+  aaa-db:
+    image: postgres:15-alpine
+    container_name: aaa-db
+    shm_size: 256m
+    env_file:
+      - variables.env
+    volumes:
+      - ./appdata/postgresql/data:/var/lib/postgresql/data
