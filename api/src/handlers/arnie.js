@@ -5,7 +5,7 @@ const {orderBy, sql} = require('../db');
 const modelToDto = ({createdAt, updatedAt, ...props}) => ({
   ...props,
   createdAt: createdAt.toISOString(),
-  updatedAt: createdAt.toISOString(),
+  updatedAt: updatedAt.toISOString(),
 });
 
 const getArnieById = async (c, ctx) => {
@@ -90,7 +90,7 @@ const putArnieById = async (c, ctx) => {
     `;
     const [row] = await sql`
       UPDATE arnie
-      SET ${sql(arnie)}
+      SET ${sql(arnie)}, updated_at = now()
       WHERE id = ${arnieId}
       RETURNING created_at, updated_at`;
     ctx.body = modelToDto({
