@@ -9,13 +9,13 @@ const sql = postgres({
   debug: true,
 });
 
-const orderBy = fields => fields.reduce(
+const orderBy = (fields) => fields.reduce(
   (acc, field, i) => {
     const desc = field.charAt(0) === '-';
     const order = desc ? sql`${sql(field.slice(1))} DESC` : sql`${sql(field)}`;
     return sql`${acc} ${i ? sql`,` : sql`ORDER BY`} ${order}`;
   },
-  sql``
+  sql``,
 );
 
 module.exports = {

@@ -1,6 +1,7 @@
-import {omit} from 'lodash-es';
-import {useEffect, useRef, useState} from 'react';
-import {useParams} from 'react-router-dom';
+import hash from 'hash-it';
+import { omit } from 'lodash-es';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import {
   ActionIcon,
   Box,
@@ -10,16 +11,15 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
-import {isNotEmpty, useForm} from '@mantine/form';
-import {notifications} from '@mantine/notifications';
-import {IconCheck, IconTrash, IconX} from '@tabler/icons-react';
+import { isNotEmpty, useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconCheck, IconTrash, IconX } from '@tabler/icons-react';
 
-import {ArnieDetailed, ArnieService, Kill} from './api';
-import {ArnieFormProvider} from './arnie-form-context';
+import { ArnieDetailed, ArnieService, Kill } from '../api';
+import { ArnieFormProvider } from '../form/arnie-form-context';
 
 export default function ArnieDetails() {
-  const {id: arnieId} = useParams();
-  if (!arnieId) return null;
+  const { id: arnieId = '' } = useParams();
 
   const form = useForm<ArnieDetailed>({
     initialValues: {
@@ -29,7 +29,7 @@ export default function ArnieDetails() {
     },
     validate: {
       kills: {
-        badGuy: isNotEmpty(`What's your real name?`),
+        badGuy: isNotEmpty('What\'s your real name?'),
       },
     },
     validateInputOnBlur: true,
@@ -40,10 +40,18 @@ export default function ArnieDetails() {
       try {
         const arnie = await ArnieService.getArnieById(arnieId);
         // controlled inputs must have non-null values
-        for (const kill of arnie.kills) {
-          kill.oneLiner = kill.oneLiner ?? '';
-          kill.weapon = kill.weapon ?? '';
-        }
+        arnie.kills = arnie.kills.map((kill) => {
+          const {
+            badGuy,
+            oneLiner = '',
+            weapon = '',
+          } = kill;
+          return {
+            badGuy,
+            oneLiner,
+            weapon,
+          };
+        });
         form.setValues(arnie);
         form.resetDirty(arnie);
       } catch (err) {
@@ -57,7 +65,7 @@ export default function ArnieDetails() {
       }
     };
     loadData();
-  }, []);
+  }, [arnieId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // focus the `badGuy` input whenever we add a new row
   const [newRow, setNewRow] = useState(0);
@@ -100,11 +108,11 @@ export default function ArnieDetails() {
     }
   };
 
-  const fields = form.values.kills.map((_, i) => (
-    <Group key={i} align="flex-start" position="center" mt="md">
-      <TextInput sx={{flex: 1}} {...form.getInputProps(`kills.${i}.badGuy`)} ref={inputRef} />
-      <TextInput sx={{flex: 1}} {...form.getInputProps(`kills.${i}.weapon`)} />
-      <TextInput sx={{flex: 1}} {...form.getInputProps(`kills.${i}.oneLiner`)} />
+  const fields = form.values.kills.map((kill, i) => (
+    <Group key={hash(kill)} align="flex-start" position="center" mt="md">
+      <TextInput sx={{ flex: 1 }} {...form.getInputProps(`kills.${i}.badGuy`)} ref={inputRef} />
+      <TextInput sx={{ flex: 1 }} {...form.getInputProps(`kills.${i}.weapon`)} />
+      <TextInput sx={{ flex: 1 }} {...form.getInputProps(`kills.${i}.oneLiner`)} />
       <ActionIcon color="red" onClick={() => form.removeListItem('kills', i)}>
         <IconTrash size="1rem" />
       </ActionIcon>
@@ -116,19 +124,20 @@ export default function ArnieDetails() {
       <ArnieFormProvider form={form}>
         <form onSubmit={form.onSubmit(onSubmit)}>
           <Text ta="center">
-            Bad guys killed by <Text span fw={700} fz="lg">{form.values.name}</Text>
+            Bad guys killed by&nbsp;
+            <Text span fw={700} fz="lg">{form.values.name}</Text>
           </Text>
           <Group position="center" mt="md">
-            <Text weight={500} size="sm" sx={{flex: 1}}>
+            <Text weight={500} size="sm" sx={{ flex: 1 }}>
               Name
             </Text>
-            <Text weight={500} size="sm" sx={{flex: 1}}>
+            <Text weight={500} size="sm" sx={{ flex: 1 }}>
               Weapon used
             </Text>
-            <Text weight={500} size="sm" sx={{flex: 1}}>
+            <Text weight={500} size="sm" sx={{ flex: 1 }}>
               One liner
             </Text>
-            <ActionIcon sx={{visibility:'hidden'}} />
+            <ActionIcon sx={{ visibility: 'hidden' }} />
           </Group>
           {fields}
           <Group position="center" mt="md">

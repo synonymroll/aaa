@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "nodemon -e js,yml",
+    "lint": "eslint src",
     "lint:schema": "spectral lint openapi/v1.yml",
     "migrate": "ley"
   },
@@ -18,10 +19,14 @@
     "lodash": "^4.17.21",
     "nanoid": "^3.3.6",
     "openapi-backend": "^5.9.1",
+    "pino": "^8.11.0",
     "postgres": "^3.3.4"
   },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.6.0",
+    "eslint": "^8.2.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-plugin-import": "^2.25.2",
     "ley": "^0.8.1",
     "nodemon": "^2.0.22"
   }

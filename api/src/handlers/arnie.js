@@ -1,15 +1,15 @@
 const createError = require('http-errors');
-const {isNull, omitBy} = require('lodash');
-const {orderBy, sql} = require('../db');
+const { isNull, omitBy } = require('lodash');
+const { orderBy, sql } = require('../db');
 
-const modelToDto = ({createdAt, updatedAt, ...props}) => ({
+const modelToDto = ({ createdAt, updatedAt, ...props }) => ({
   ...props,
   createdAt: createdAt.toISOString(),
   updatedAt: updatedAt.toISOString(),
 });
 
 const getArnieById = async (c, ctx) => {
-  const {id} = c.request.params;
+  const { id } = c.request.params;
   const rs = await sql`
     SELECT
       a.*, k.bad_guy, k.one_liner, k.weapon
@@ -24,9 +24,14 @@ const getArnieById = async (c, ctx) => {
   }
 
   const arnie = rs.reduce((acc, row) => {
-    const {badGuy, oneLiner, weapon, ...arnie} = row;
-    const kill = omitBy({badGuy, oneLiner, weapon}, isNull);
-    return Object.assign(acc, arnie, {
+    const {
+      badGuy,
+      oneLiner,
+      weapon,
+      ...rest
+    } = row;
+    const kill = omitBy({ badGuy, oneLiner, weapon }, isNull);
+    return Object.assign(acc, rest, {
       kills: (acc.kills || []).concat(kill),
     });
   }, {});
@@ -66,31 +71,31 @@ const listArnies = async (c, ctx) => {
 };
 
 const putArnieById = async (c, ctx) => {
-  const {id: arnieId} = c.request.params;
-  const {kills, ...arnie} = c.request.body;
+  const { id: arnieId } = c.request.params;
+  const { kills, ...arnie } = c.request.body;
   const killData = kills.map((kill, i) => ({
     ...kill,
     id: i,
     arnieId,
   }));
-  const [row] = await sql`SELECT 1 AS count FROM arnie WHERE id=${arnieId}`;
-  if (!row) {
+  const [count] = await sql`SELECT 1 AS count FROM arnie WHERE id=${arnieId}`;
+  if (!count) {
     throw createError(404);
   }
 
-  await sql.begin(async sql => {
-    await sql`
-      INSERT INTO kill ${sql(killData)}
+  await sql.begin(async (tx) => {
+    await tx`
+      INSERT INTO kill ${tx(killData)}
       ON CONFLICT (id, arnie_id)
       DO UPDATE SET
         bad_guy = EXCLUDED.bad_guy, one_liner = EXCLUDED.one_liner, weapon = EXCLUDED.weapon
     `;
-    await sql`
+    await tx`
       DELETE FROM kill WHERE arnie_id = ${arnieId} AND id >= ${kills.length}
     `;
-    const [row] = await sql`
+    const [row] = await tx`
       UPDATE arnie
-      SET ${sql(arnie)}, updated_at = now()
+      SET ${tx(arnie)}, updated_at = now()
       WHERE id = ${arnieId}
       RETURNING created_at, updated_at`;
     ctx.body = modelToDto({
